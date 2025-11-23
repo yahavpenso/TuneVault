@@ -15,16 +15,16 @@ function detectPlatform(url: string): "youtube" | "soundcloud" | "spotify" | "ap
   if (urlLower.includes("spotify.com")) {
     return "spotify";
   }
-  if (urlLower.includes("music.apple.com") || urlLower.includes("open.spotify.com")) {
+  if (urlLower.includes("music.apple.com")) {
     return "applemusic";
   }
   return "other";
 }
 
-// Helper to extract video/track ID and fetch metadata
+// Helper to fetch metadata and generate preview links
 async function fetchMetadata(url: string, platform: string) {
   // In a real implementation, this would use ytdl-core, soundcloud-downloader, etc.
-  // For MVP, we'll return mock metadata
+  // For MVP, we'll return mock metadata with preview links
   const mockTitles = [
     { title: "Summer Vibes Mix 2024", artist: "DJ Chill" },
     { title: "Epic Movie Soundtrack", artist: "Orchestra Masters" },
@@ -35,11 +35,24 @@ async function fetchMetadata(url: string, platform: string) {
 
   const random = mockTitles[Math.floor(Math.random() * mockTitles.length)];
   
+  // Generate preview link based on platform
+  let previewUrl = undefined;
+  if (platform === "spotify") {
+    previewUrl = "https://open.spotify.com/track/6rqhFgbbKwnb9MLmUQDvDm";
+  } else if (platform === "applemusic") {
+    previewUrl = "https://music.apple.com/us/album/1-2-3-4/1234567890";
+  } else if (platform === "youtube") {
+    previewUrl = url;
+  } else if (platform === "soundcloud") {
+    previewUrl = url;
+  }
+  
   return {
     title: random.title,
     artist: random.artist,
     thumbnail: `https://picsum.photos/seed/${Math.random()}/300/300`,
-    duration: Math.floor(Math.random() * 300) + 60, // 1-6 minutes
+    duration: Math.floor(Math.random() * 300) + 60,
+    previewUrl,
   };
 }
 
@@ -215,17 +228,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/files/:filename", async (req, res) => {
     try {
       // For MVP, serve a sample audio file
-      // In production, this would stream the actual converted file from storage
       const filename = req.params.filename;
       
       // Set headers to trigger download
       res.setHeader("Content-Type", "audio/mpeg");
       res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
-      res.setHeader("Content-Length", "1024"); // Mock file size
+      res.setHeader("Content-Length", "1024");
       
       // Send a small mock audio file (silence)
-      // In production, you would stream the actual file: res.sendFile(filePath)
-      const mockAudioData = Buffer.alloc(1024); // Empty buffer representing a tiny audio file
+      const mockAudioData = Buffer.alloc(1024);
       res.send(mockAudioData);
     } catch (error: any) {
       console.error("File serve error:", error);

@@ -1,7 +1,9 @@
-import { Download, RefreshCw, Music, CheckCircle2, XCircle } from "lucide-react";
+import { Download, RefreshCw, Music, CheckCircle2, XCircle, ExternalLink } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { PreviewPlayer } from "./preview-player";
+import { MetadataEditor } from "./metadata-editor";
 import type { DownloadJob } from "@shared/schema";
 
 interface DownloadResultProps {
@@ -75,44 +77,62 @@ export function DownloadResult({ job, onConvertAnother }: DownloadResultProps) {
           )}
         </div>
 
-        {/* File Info */}
+        {/* File Info & Metadata */}
         {isSuccess && job.metadata && (
-          <div className="flex items-start gap-4 p-4 bg-card rounded-lg border border-card-border">
-            {job.metadata.thumbnail ? (
-              <img 
-                src={job.metadata.thumbnail} 
-                alt={job.metadata.title || "Thumbnail"}
-                className="w-20 h-20 rounded-md object-cover shrink-0"
-                data-testid="img-thumbnail"
-              />
-            ) : (
-              <div className="w-20 h-20 bg-muted rounded-md flex items-center justify-center shrink-0">
-                <Music className="h-10 w-10 text-muted-foreground" />
-              </div>
-            )}
-            <div className="flex-1 min-w-0 space-y-2">
-              <h4 className="font-heading text-lg font-semibold text-foreground line-clamp-2" data-testid="text-title">
-                {job.metadata.title || "Untitled"}
-              </h4>
-              {job.metadata.artist && (
-                <p className="font-body text-sm text-muted-foreground" data-testid="text-artist">
-                  {job.metadata.artist}
-                </p>
+          <div className="space-y-4">
+            <div className="flex items-start gap-4 p-4 bg-card rounded-lg border border-card-border">
+              {job.metadata.thumbnail ? (
+                <img 
+                  src={job.metadata.thumbnail} 
+                  alt={job.metadata.title || "Thumbnail"}
+                  className="w-20 h-20 rounded-md object-cover shrink-0"
+                  data-testid="img-thumbnail"
+                />
+              ) : (
+                <div className="w-20 h-20 bg-muted rounded-md flex items-center justify-center shrink-0">
+                  <Music className="h-10 w-10 text-muted-foreground" />
+                </div>
               )}
-              <div className="flex flex-wrap gap-2 items-center">
-                <Badge variant="secondary" className="font-body uppercase" data-testid="badge-format">
-                  {job.format}
-                </Badge>
-                <Badge variant="outline" className="font-body" data-testid="badge-quality">
-                  {job.quality === "lossless" ? "Lossless" : `${job.quality} kbps`}
-                </Badge>
-                {job.metadata.duration && (
-                  <span className="font-body text-xs text-muted-foreground">
-                    {formatDuration(job.metadata.duration)}
-                  </span>
+              <div className="flex-1 min-w-0 space-y-2">
+                <h4 className="font-heading text-lg font-semibold text-foreground line-clamp-2" data-testid="text-title">
+                  {job.metadata.title || "Untitled"}
+                </h4>
+                {job.metadata.artist && (
+                  <p className="font-body text-sm text-muted-foreground" data-testid="text-artist">
+                    {job.metadata.artist}
+                  </p>
                 )}
+                <div className="flex flex-wrap gap-2 items-center">
+                  <Badge variant="secondary" className="font-body uppercase" data-testid="badge-format">
+                    {job.format}
+                  </Badge>
+                  <Badge variant="outline" className="font-body" data-testid="badge-quality">
+                    {job.quality === "lossless" ? "Lossless" : `${job.quality} kbps`}
+                  </Badge>
+                  {job.metadata.duration && (
+                    <span className="font-body text-xs text-muted-foreground">
+                      {formatDuration(job.metadata.duration)}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
+
+            {/* Preview Player */}
+            <PreviewPlayer job={job} />
+
+            {/* Metadata Editor */}
+            <MetadataEditor job={job} />
+
+            {/* Preview Link */}
+            {(job.metadata as any)?.previewUrl && (
+              <a href={(job.metadata as any).previewUrl} target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" className="w-full gap-2" data-testid="button-preview-link">
+                  <ExternalLink className="h-4 w-4" />
+                  Open on {job.platform.charAt(0).toUpperCase() + job.platform.slice(1)}
+                </Button>
+              </a>
+            )}
           </div>
         )}
 
