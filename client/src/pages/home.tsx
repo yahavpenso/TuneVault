@@ -77,7 +77,10 @@ export default function Home() {
             )}
 
             {downloadJob && downloadJob.status !== "completed" && downloadJob.status !== "error" && (
-              <ProgressIndicator job={downloadJob} />
+              <ProgressIndicator 
+                job={downloadJob} 
+                onUpdate={(updatedJob) => setDownloadJob(updatedJob)}
+              />
             )}
 
             {downloadJob && (downloadJob.status === "completed" || downloadJob.status === "error") && (

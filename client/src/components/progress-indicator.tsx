@@ -7,21 +7,31 @@ import type { DownloadJob } from "@shared/schema";
 
 interface ProgressIndicatorProps {
   job: DownloadJob;
+  onUpdate?: (job: DownloadJob) => void;
 }
 
-export function ProgressIndicator({ job }: ProgressIndicatorProps) {
+export function ProgressIndicator({ job, onUpdate }: ProgressIndicatorProps) {
   const { data: updatedJob } = useQuery<DownloadJob>({
-    queryKey: ["/api/download", job.id],
+    queryKey: [`/api/download/${job.id}`],
+    initialData: job,
     refetchInterval: (query) => {
       const data = query.state.data;
       if (!data) return 1000;
       if (data.status === "completed" || data.status === "error") return false;
       return 1000;
     },
-    enabled: job.status !== "completed" && job.status !== "error",
+    enabled: !!job.id && job.status !== "completed" && job.status !== "error",
   });
 
   const currentJob = updatedJob || job;
+  const progress = typeof currentJob.progress === 'number' ? currentJob.progress : 0;
+
+  // Notify parent when job updates
+  useEffect(() => {
+    if (updatedJob && onUpdate) {
+      onUpdate(updatedJob);
+    }
+  }, [updatedJob, onUpdate]);
 
   const getStatusText = (status: string) => {
     switch (status) {
@@ -60,7 +70,7 @@ export function ProgressIndicator({ job }: ProgressIndicatorProps) {
               {getStatusText(currentJob.status)}
             </h3>
             <p className="font-body text-sm text-muted-foreground">
-              {getEstimatedTime(currentJob.progress)}
+              {getEstimatedTime(progress)}
             </p>
           </div>
         </div>
@@ -72,11 +82,11 @@ export function ProgressIndicator({ job }: ProgressIndicatorProps) {
               Progress
             </span>
             <span className="font-body text-sm font-semibold text-secondary">
-              {Math.round(currentJob.progress)}%
+              {Math.round(progress)}%
             </span>
           </div>
           <Progress 
-            value={currentJob.progress} 
+            value={progress} 
             className="h-3"
             data-testid="progress-bar"
           />

@@ -28,7 +28,8 @@ export function ConverterCard({ onDownloadStart }: ConverterCardProps) {
 
   const downloadMutation = useMutation({
     mutationFn: async (data: DownloadRequest) => {
-      return await apiRequest<DownloadJob>("POST", "/api/download", data);
+      const response = await apiRequest("POST", "/api/download", data);
+      return await response.json() as DownloadJob;
     },
     onSuccess: (data) => {
       onDownloadStart(data);
