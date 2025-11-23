@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { downloadRequestSchema, searchRequestSchema } from "@shared/schema";
 
 // Helper to detect platform from URL
-function detectPlatform(url: string): "youtube" | "soundcloud" | "spotify" | "other" {
+function detectPlatform(url: string): "youtube" | "soundcloud" | "spotify" | "applemusic" | "other" {
   const urlLower = url.toLowerCase();
   if (urlLower.includes("youtube.com") || urlLower.includes("youtu.be")) {
     return "youtube";
@@ -14,6 +14,9 @@ function detectPlatform(url: string): "youtube" | "soundcloud" | "spotify" | "ot
   }
   if (urlLower.includes("spotify.com")) {
     return "spotify";
+  }
+  if (urlLower.includes("music.apple.com") || urlLower.includes("open.spotify.com")) {
+    return "applemusic";
   }
   return "other";
 }
@@ -228,6 +231,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("File serve error:", error);
       res.status(500).json({
         error: "Failed to serve file",
+        message: error.message,
+      });
+    }
+  });
+
+  // GET /api/downloads/history - Get download history
+  app.get("/api/downloads/history", async (req, res) => {
+    try {
+      const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
+      const downloads = await storage.getRecentDownloads(limit);
+      res.json(downloads);
+    } catch (error: any) {
+      console.error("Get history error:", error);
+      res.status(500).json({
+        error: "Failed to get download history",
         message: error.message,
       });
     }
